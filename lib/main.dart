@@ -7,14 +7,14 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-     
-        colorScheme: .fromSeed(seedColor: const Color.fromARGB(255, 58, 183, 83)),
+        colorScheme: .fromSeed(
+          seedColor: const Color.fromARGB(255, 58, 183, 83),
+        ),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -35,25 +35,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-  
       _counter++;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
-      
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-   
+
         title: Text(widget.title),
       ),
       body: Center(
-       
         child: Column(
-   
           mainAxisAlignment: .center,
           children: [
             const Text('You have pushed the button this many times:'),
