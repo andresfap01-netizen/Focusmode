@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:focusmode/view/login.dart';
 import 'signup.dart';
 
 class Home extends StatelessWidget {
@@ -7,7 +8,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(0, 255, 255, 255),
+      backgroundColor:  Color.fromARGB(0, 235, 131, 221),
       body: Column(
         children: [
           Expanded(
@@ -48,7 +49,7 @@ class Home extends StatelessWidget {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (_) => const Login()));},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.indigo,
                           shape: RoundedRectangleBorder(
@@ -59,6 +60,7 @@ class Home extends StatelessWidget {
                           "Login",
                           style: TextStyle(color: Colors.white, 
                           fontWeight: FontWeight.bold,),
+                          
                          
                         ),
                       ),

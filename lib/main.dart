@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   textTheme: GoogleFonts.poppinsTextTheme(),
 ),
       
-      home: const Login(), // Pantalla en blanco
+      home: const Home(), // Pantalla en blanco
     );
   }
 }
