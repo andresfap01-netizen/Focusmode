@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:focusmode/view/login.dart';
+import 'package:focusmode/view/Home.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
