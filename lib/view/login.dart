@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:focusmode/view/Permiso.dart';
 
 class Login extends StatelessWidget {
   const Login({super.key});
@@ -121,7 +122,14 @@ class Login extends StatelessWidget {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(30),
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Permiso(),
+                            ),
+                          );
+                        },
                         child: const Center(
                           child: Text(
                             "Sign Up",

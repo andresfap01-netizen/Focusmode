@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'Login.dart';
 
 class SignUp extends StatelessWidget {
   const SignUp({super.key});
@@ -106,7 +107,7 @@ class SignUp extends StatelessWidget {
 
                   Center(
                     child: TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (_) => const Login()));},
                       child: const Text(
                         "Already have an account? Login",
                         style: TextStyle(color: Colors.white70),
