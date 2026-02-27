@@ -34,3 +34,8 @@ flutter:
   assets:
     - assets/imagenes/icono.png
     - assets/imagenes/icono2.png
+    - assets/imagenes/Tiktok.png
+    - assets/imagenes/whatsapp.png
+    - assets/imagenes/Instagram.png
+    - assets/imagenes/Facebook.png
+    
