@@ -106,7 +106,15 @@ Componentes usados:
 - `FloatingActionButton`
 - `ListView.builder`
 - `DropdownButton<int>` y `DropdownMenuItem`
+- `PieChart` de `fl_chart` para grafico de pastel mockeado en "Resumen Semanal"
 - `Image.asset`, `Container`, `Row`, `Text`
+
+Implementacion del mock del grafico:
+- Se usa `fl_chart` con `PieChart` y `PieChartData`.
+- Cada segmento del grafico se modela con la clase privada `_PieSlice` (label, value, color).
+- El widget privado `_PieChartMock` transforma los `_PieSlice` en `PieChartSectionData`.
+- Configuracion visual actual: `centerSpaceRadius: 40`, `startDegreeOffset: -90`, etiquetas con porcentaje fuera del aro.
+- Es un mock visual para rellenar la vista, no consume datos reales todavia.
 
 ### `lib/view/AddApp.dart`
 Clase: `AddApp` (`StatefulWidget`)
@@ -229,6 +237,9 @@ Estado y ciclo de vida:
 
 Tipografía externa:
 - `google_fonts` -> `GoogleFonts.poppins`
+
+Graficos:
+- `fl_chart` -> `PieChart`, `PieChartData`, `PieChartSectionData`, `FlBorderData`
 
 ## 6. Observaciones técnicas actuales
 

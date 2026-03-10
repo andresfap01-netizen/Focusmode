@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'AddApp.dart';
 import 'Modelo_App.dart';
 
@@ -181,8 +182,45 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                     ),
                     SizedBox(height: 10),
                     SizedBox(
-                      height: 120,
-                      child: Center(child: Text("Gráfica aquí")),
+                      height: 260,
+                      child: Row(
+                        children: const [
+                          Expanded(
+                            flex: 2,
+                            child: Center(
+                              child: _PieChartMock(
+                                slices: [
+                                  _PieSlice(
+                                    label: "Titkok",
+                                    value: 37,
+                                    color: Color(0xFFc331f8),
+                                  ),
+                                  _PieSlice(
+                                    label: "Instagram",
+                                    value: 13.8,
+                                    color: Color(0xFF4942ce),
+                                  ),
+                                  _PieSlice(
+                                    label: "Whatsapp",
+                                    value: 7.4,
+                                    color: Color(0xFF2d8bba),
+                                  ),
+                                  _PieSlice(
+                                    label: "Facebook",
+                                    value: 14.8,
+                                    color: Color(0xFF51a3b8),
+                                  ),
+                                  _PieSlice(
+                                    label: "Youtube",
+                                    value: 25.9,
+                                    color: Color(0xFF66c5c4),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -306,4 +344,55 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   }
 
+}
+
+class _PieSlice {
+  // Modelo simple para cada segmento del pastel mockeado.
+  final String label;
+  final double value;
+  final Color color;
+
+  const _PieSlice({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+}
+
+class _PieChartMock extends StatelessWidget {
+  // Lista de segmentos que se renderizan en el PieChart de fl_chart.
+  final List<_PieSlice> slices;
+
+  const _PieChartMock({required this.slices});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 110,
+      height: 110,
+      child: PieChart(
+        PieChartData(
+          // Espacio central para efecto dona.
+          centerSpaceRadius: 40,
+          sectionsSpace: 1,
+          startDegreeOffset: -90,
+          borderData: FlBorderData(show: false),
+          // Secciones mock: cada item de slices se transforma en una porcion.
+          sections: slices
+              .map(
+                (slice) => PieChartSectionData(
+                  value: slice.value,
+                  color: slice.color,
+                  radius: 50,
+                  title: "${slice.label}\n${slice.value.toInt()}%",
+                  // El texto se muestra fuera del aro para mejorar lectura.
+                  titleStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                  titlePositionPercentageOffset: 1.7
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    );
+  }
 }
