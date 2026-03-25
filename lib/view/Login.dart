@@ -11,6 +11,7 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -48,7 +49,6 @@ class _LoginState extends State<Login> {
                         shape: BoxShape.circle,
                       ),
                     ),
-
                     Image.asset('assets/imagenes/icono.png', width: 140),
                   ],
                 ),
@@ -90,85 +90,105 @@ class _LoginState extends State<Login> {
                   topRight: Radius.circular(40),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Center(
-                    child: Text(
-                      "Login",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 30,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Center(
+                      child: Text(
+                        "Login",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 30,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Center(
-                    child: Text(
-                      "Sign in to Continue.",
+                    const SizedBox(height: 6),
+                    const Center(
+                      child: Text(
+                        "Sign in to Continue.",
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    const Text("EMAIL", style: TextStyle(color: Colors.white70)),
+                    const SizedBox(height: 8),
+                    buildTextField(
+                      "Introduce tu Email",
+                      _emailController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "El email es requerido";
+                        if (!value.contains('@')) return "Ingresa un email válido";
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "PASSWORD",
                       style: TextStyle(color: Colors.white70),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                  const Text("EMAIL", style: TextStyle(color: Colors.white70)),
-                  const SizedBox(height: 8),
-                  buildTextField("Introduce tu Email", _emailController),
-
-                  const SizedBox(height: 16),
-
-                  const Text(
-                    "PASSWORD",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 8),
-                  buildTextField("Introduce tu Contraseña", _passwordController, isPassword: true),
-                  const SizedBox(height: 30),
-                  Container(
-                    width: double.infinity,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6C63FF), Color(0xFF7F7BFF)],
-                      ),
+                    const SizedBox(height: 8),
+                    buildTextField(
+                      "Introduce tu Contraseña",
+                      _passwordController,
+                      isPassword: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "La contraseña es requerida";
+                        if (value.length < 6) return "Mínimo 6 caracteres";
+                        return null;
+                      },
                     ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
+                    const SizedBox(height: 30),
+                    Container(
+                      width: double.infinity,
+                      height: 55,
+                      decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const Permiso(),
-                            ),
-                          );
-                        },
-                        child: const Center(
-                          child: Text(
-                            "Log In",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6C63FF), Color(0xFF7F7BFF)],
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(30),
+                          onTap: () {
+                            if (_formKey.currentState!.validate()) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const Permiso(),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Center(
+                            child: Text(
+                              "Log In",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        "Forgot Password?",
-                        style: TextStyle(color: Colors.white70),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          "Forgot Password?",
+                          style: TextStyle(color: Colors.white70),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -177,10 +197,16 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Widget buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
-    return TextField(
+  Widget buildTextField(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
       controller: controller,
       obscureText: isPassword,
+      validator: validator,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,

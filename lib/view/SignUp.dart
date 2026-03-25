@@ -10,6 +10,7 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -49,7 +50,6 @@ class _SignUpState extends State<SignUp> {
               ),
             ),
           ),
-
           Expanded(
             child: Container(
               width: double.infinity,
@@ -61,85 +61,109 @@ class _SignUpState extends State<SignUp> {
                   topRight: Radius.circular(40),
                 ),
               ),
-
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    "Create a new Account",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  const Text(
-                    "Already Registered? Log in here.",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  buildTextField("Name", _nameController),
-                  const SizedBox(height: 16),
-                  buildTextField("Email", _emailController),
-                  const SizedBox(height: 16),
-                  buildTextField("Password", _passwordController, isPassword: true),
-
-                  const SizedBox(height: 30),
-
-                  Container(
-                    width: double.infinity,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6C63FF), Color(0xFF7F7BFF)],
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Create a new Account",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Already Registered? Log in here.",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 30),
+                    buildTextField(
+                      "Name",
+                      _nameController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "El nombre es requerido";
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    buildTextField(
+                      "Email",
+                      _emailController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "El email es requerido";
+                        if (!value.contains('@')) return "Ingresa un email válido";
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    buildTextField(
+                      "Password",
+                      _passwordController,
+                      isPassword: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "La contraseña es requerida";
+                        if (value.length < 6) return "Mínimo 6 caracteres";
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 30),
+                    Container(
+                      width: double.infinity,
+                      height: 55,
+                      decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const Permiso(),
-                            ),
-                          );
-                        },
-                        child: const Center(
-                          child: Text(
-                            "Sign Up",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6C63FF), Color(0xFF7F7BFF)],
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(30),
+                          onTap: () {
+                            if (_formKey.currentState!.validate()) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const Permiso(),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Center(
+                            child: Text(
+                              "Sign Up",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Center(
-                    child: TextButton(
-                      onPressed: () { Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Login()));},
-                      child: const Text(
-                        "Already have an account? Login",
-                        style: TextStyle(color: Colors.white70),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => const Login()),
+                          );
+                        },
+                        child: const Text(
+                          "Already have an account? Login",
+                          style: TextStyle(color: Colors.white70),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -148,10 +172,16 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  Widget buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
-    return TextField(
+  Widget buildTextField(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
       controller: controller,
       obscureText: isPassword,
+      validator: validator,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
