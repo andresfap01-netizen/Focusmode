@@ -1,4 +1,4 @@
-class Modelo_App{
+class ModeloApp{
 
   String nombre;
   String icono;
@@ -9,7 +9,7 @@ class Modelo_App{
 
   DateTime? tiempoInicio;
 
-  Modelo_App({
+  ModeloApp({
     required this.nombre,
     required this.icono,
     this.seleccionada = false,

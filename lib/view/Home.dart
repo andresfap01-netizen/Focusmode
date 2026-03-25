@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:focusmode/view/login.dart';
-import 'signup.dart';
+import 'package:focusmode/view/Login.dart';
+import 'SignUp.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'AddApp.dart';
-import 'Modelo_App.dart';
+import 'ModeloApp.dart';
 
 class PantallaPrincipal extends StatefulWidget {
   const PantallaPrincipal({super.key});
@@ -13,7 +13,7 @@ class PantallaPrincipal extends StatefulWidget {
 
 class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
-  List<Modelo_App> appsRestringidas = [];
+  List<ModeloApp> appsRestringidas = [];
 
   Timer? timer;
 

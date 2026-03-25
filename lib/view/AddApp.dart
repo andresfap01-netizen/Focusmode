@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'Modelo_App.dart';
+import 'ModeloApp.dart';
 
 
 class AddApp extends StatefulWidget {
 
-  final List<Modelo_App> appsSeleccionadas;
+  final List<ModeloApp> appsSeleccionadas;
 
   const AddApp({
     super.key,
@@ -17,24 +17,24 @@ class AddApp extends StatefulWidget {
 
 class _AddAppState extends State<AddApp>{
 
-  List<Modelo_App> todasLasApps = [
+  List<ModeloApp> todasLasApps = [
 
-    Modelo_App(
+    ModeloApp(
       nombre: "TikTok",
       icono: "assets/imagenes/Tiktok.png",
     ),
 
-    Modelo_App(
+    ModeloApp(
       nombre: "Instagram",
       icono: "assets/imagenes/Instagram.png",
     ),
 
-    Modelo_App(
+    ModeloApp(
       nombre: "WhatsApp",
       icono: "assets/imagenes/Whatsapp.png",
     ),
 
-    Modelo_App(
+    ModeloApp(
       nombre: "Facebook",
       icono: "assets/imagenes/Facebook.png",
     ),
