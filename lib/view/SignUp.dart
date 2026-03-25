@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Login.dart';
+import 'Permiso.dart';
 
 class SignUp extends StatelessWidget {
   const SignUp({super.key});
@@ -88,7 +89,14 @@ class SignUp extends StatelessWidget {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(30),
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const Permiso(),
+                            ),
+                          );
+                        },
                         child: const Center(
                           child: Text(
                             "Sign Up",
@@ -107,7 +115,7 @@ class SignUp extends StatelessWidget {
 
                   Center(
                     child: TextButton(
-                      onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (_) => const Login()));},
+                      onPressed: () { Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Login()));},
                       child: const Text(
                         "Already have an account? Login",
                         style: TextStyle(color: Colors.white70),

@@ -132,7 +132,7 @@ class Login extends StatelessWidget {
                         },
                         child: const Center(
                           child: Text(
-                            "Sign Up",
+                            "Log In",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -144,22 +144,6 @@ class Login extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Center(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 10,
-                          ),
-                        ),
-                        Text(
-                          "Sign up !",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
                   Center(
                     child: TextButton(
                       onPressed: () {},
