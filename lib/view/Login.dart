@@ -3,8 +3,23 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:focusmode/view/Permiso.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
   const Login({super.key});
+
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +113,7 @@ class Login extends StatelessWidget {
                   const SizedBox(height: 30),
                   const Text("EMAIL", style: TextStyle(color: Colors.white70)),
                   const SizedBox(height: 8),
-                  buildTextField("Introduce tu Email"),
+                  buildTextField("Introduce tu Email", _emailController),
 
                   const SizedBox(height: 16),
 
@@ -107,7 +122,7 @@ class Login extends StatelessWidget {
                     style: TextStyle(color: Colors.white70),
                   ),
                   const SizedBox(height: 8),
-                  buildTextField("Introduce tu Contraseña", isPassword: true),
+                  buildTextField("Introduce tu Contraseña", _passwordController, isPassword: true),
                   const SizedBox(height: 30),
                   Container(
                     width: double.infinity,
@@ -162,8 +177,9 @@ class Login extends StatelessWidget {
     );
   }
 
-  static Widget buildTextField(String hint, {bool isPassword = false}) {
+  Widget buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(

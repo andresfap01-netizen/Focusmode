@@ -2,8 +2,25 @@ import 'package:flutter/material.dart';
 import 'Login.dart';
 import 'Permiso.dart';
 
-class SignUp extends StatelessWidget {
+class SignUp extends StatefulWidget {
   const SignUp({super.key});
+
+  @override
+  State<SignUp> createState() => _SignUpState();
+}
+
+class _SignUpState extends State<SignUp> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,11 +85,11 @@ class SignUp extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  buildTextField("Name"),
+                  buildTextField("Name", _nameController),
                   const SizedBox(height: 16),
-                  buildTextField("Email"),
+                  buildTextField("Email", _emailController),
                   const SizedBox(height: 16),
-                  buildTextField("Password", isPassword: true),
+                  buildTextField("Password", _passwordController, isPassword: true),
 
                   const SizedBox(height: 30),
 
@@ -131,8 +148,9 @@ class SignUp extends StatelessWidget {
     );
   }
 
-  static Widget buildTextField(String hint, {bool isPassword = false}) {
+  Widget buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
