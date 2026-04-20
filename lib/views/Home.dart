@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:focusmode/view/Login.dart';
-import 'SignUp.dart';
+import 'package:focusmode/views/Login.dart';
+import 'package:focusmode/views/SignUp.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -8,7 +8,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:  Color.fromARGB(0, 235, 131, 221),
+      backgroundColor: Color.fromARGB(0, 235, 131, 221),
       body: Column(
         children: [
           Expanded(
@@ -17,7 +17,11 @@ class Home extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
-                Image.asset('assets/imagenes/icono.png', width: 100, height: 100),
+                Image.asset(
+                  'assets/imagenes/icono.png',
+                  width: 100,
+                  height: 100,
+                ),
                 Text(
                   "FOCUS MODE",
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -49,7 +53,12 @@ class Home extends StatelessWidget {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (_) => const Login()));},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const Login()),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.indigo,
                           shape: RoundedRectangleBorder(
@@ -58,10 +67,10 @@ class Home extends StatelessWidget {
                         ),
                         child: Text(
                           "Login",
-                          style: TextStyle(color: Colors.white, 
-                          fontWeight: FontWeight.bold,),
-                          
-                         
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -71,7 +80,10 @@ class Home extends StatelessWidget {
                       height: 50,
                       child: OutlinedButton(
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUp()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SignUp()),
+                          );
                         },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(
@@ -84,8 +96,10 @@ class Home extends StatelessWidget {
                         ),
                         child: Text(
                           "Sign up",
-                          style: TextStyle(color: Colors.white, 
-                          fontWeight: FontWeight.bold,),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),

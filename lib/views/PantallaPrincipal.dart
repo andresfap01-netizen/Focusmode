@@ -1,8 +1,15 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+
 import 'package:fl_chart/fl_chart.dart';
-import 'AddApp.dart';
-import 'ModeloApp.dart';
+import 'package:flutter/material.dart';
+import 'package:focusmode/models/ModeloApp.dart';
+import 'package:focusmode/models/requests/RestrictionPatchRequest.dart';
+import 'package:focusmode/models/requests/RestrictionSyncRequest.dart';
+import 'package:focusmode/services/ApiErrorMapper.dart';
+import 'package:focusmode/models/responses/WeeklyStatItemResponse.dart';
+import 'package:focusmode/services/ApiService.dart';
+import 'package:focusmode/ui/AppToast.dart';
+import 'package:focusmode/views/AddApp.dart';
 
 class PantallaPrincipal extends StatefulWidget {
   const PantallaPrincipal({super.key});
@@ -12,36 +19,35 @@ class PantallaPrincipal extends StatefulWidget {
 }
 
 class _PantallaPrincipalState extends State<PantallaPrincipal> {
+  final ApiService _apiService = ApiService();
 
   List<ModeloApp> appsRestringidas = [];
+  List<_PieSlice> _statsSlices = const [];
+  int _weekTotalMinutes = 0;
+  bool _isLoading = true;
 
   Timer? timer;
 
   @override
   void initState() {
-
     super.initState();
 
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-
       setState(() {});
-
     });
 
+    _loadInitialData();
   }
 
   @override
   void dispose() {
-
     timer?.cancel();
 
     super.dispose();
-
   }
 
   void abrirAddApp() async {
-
-    final resultado = await Navigator.push(
+    final resultado = await Navigator.push<List<ModeloApp>>(
       context,
       MaterialPageRoute(
         builder: (_) => AddApp(appsSeleccionadas: appsRestringidas),
@@ -49,48 +55,158 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
 
     if (resultado != null) {
-
       setState(() {
-
-        for (var nuevaApp in resultado) {
-
-          final existe = appsRestringidas.where(
-            (app) => app.nombre == nuevaApp.nombre,
-          );
-
-          if (existe.isEmpty) {
-
-            appsRestringidas.add(nuevaApp);
-
-          } else {
-
-            nuevaApp.minutos = existe.first.minutos;
-            nuevaApp.tiempoInicio = existe.first.tiempoInicio;
-
-          }
-
-        }
-
-        appsRestringidas.removeWhere(
-          (app) => !resultado.any(
-            (seleccionada) => seleccionada.nombre == app.nombre,
-          ),
-        );
-
+        appsRestringidas = resultado;
       });
 
+      await _syncRestrictions();
     }
-
   }
 
-  void abrirPerfil() {
+  Future<void> _loadInitialData() async {
+    try {
+      final restrictionsFuture = _apiService.getRestrictions();
+      final weeklyStatsFuture = _apiService.getWeeklyStats();
 
-    print("Abrir perfil");
+      final restrictions = await restrictionsFuture;
+      final weeklyStats = await weeklyStatsFuture;
 
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        appsRestringidas = restrictions
+            .map((item) => ModeloApp.fromRestriction(item))
+            .toList();
+
+        _weekTotalMinutes = weeklyStats.weekTotalMinutes;
+        _statsSlices = _buildSlicesFromStats(weeklyStats.items);
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      AppToast.showError(context, ApiErrorMapper.toFriendlyMessage(error));
+    }
+  }
+
+  Future<void> _syncRestrictions() async {
+    try {
+      final request = RestrictionSyncRequest(
+        restrictions: appsRestringidas
+            .map((app) => app.toRestrictionCreateRequest())
+            .toList(),
+      );
+
+      final synced = await _apiService.syncRestrictions(request);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        appsRestringidas = synced
+            .map((restriction) => ModeloApp.fromRestriction(restriction))
+            .toList();
+      });
+
+      await _reloadWeeklyStats();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      AppToast.showError(context, ApiErrorMapper.toFriendlyMessage(error));
+    }
+  }
+
+  Future<void> _updateRestrictionMinutes(ModeloApp app, int minutes) async {
+    final previousMinutes = app.minutos;
+    final previousStart = app.tiempoInicio;
+
+    setState(() {
+      app.minutos = minutes;
+      app.tiempoInicio = DateTime.now();
+    });
+
+    try {
+      await _apiService.updateRestriction(
+        app.appKey,
+        RestrictionPatchRequest(
+          minutesLimit: app.minutos,
+          startedAt: app.tiempoInicio,
+        ),
+      );
+
+      await _reloadWeeklyStats();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        app.minutos = previousMinutes;
+        app.tiempoInicio = previousStart;
+      });
+
+      final message = ApiErrorMapper.toFriendlyMessage(error);
+      AppToast.showError(
+        context,
+        'No se pudo actualizar ${app.nombre}.\n$message',
+      );
+    }
+  }
+
+  List<_PieSlice> _buildSlicesFromStats(List<WeeklyStatItemResponse> items) {
+    const palette = [
+      Color(0xFFc331f8),
+      Color(0xFF4942ce),
+      Color(0xFF2d8bba),
+      Color(0xFF51a3b8),
+      Color(0xFF66c5c4),
+    ];
+
+    if (items.isEmpty) {
+      return const [];
+    }
+
+    return List.generate(items.length, (index) {
+      final item = items[index];
+      return _PieSlice(
+        label: item.appName,
+        value: item.percentage,
+        color: palette[index % palette.length],
+      );
+    });
+  }
+
+  Future<void> _reloadWeeklyStats() async {
+    try {
+      final weeklyStats = await _apiService.getWeeklyStats();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _weekTotalMinutes = weeklyStats.weekTotalMinutes;
+        _statsSlices = _buildSlicesFromStats(weeklyStats.items);
+      });
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5EDFF),
@@ -109,15 +225,11 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-
-              /// HEADER
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-
                   Row(
                     children: [
-
                       Image.asset(
                         "assets/imagenes/icono.png",
                         width: 35,
@@ -134,35 +246,29 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                           color: Color(0xFF232946),
                         ),
                       ),
-
                     ],
                   ),
 
-                  GestureDetector(
-                    onTap: abrirPerfil,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 4),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.grey[700],
-                        size: 26,
-                      ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 4),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.grey[700],
+                      size: 26,
                     ),
                   ),
-
                 ],
               ),
 
               const SizedBox(height: 20),
 
-              /// RESUMEN
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -170,55 +276,32 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Resumen Semanal",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Total semanal: $_weekTotalMinutes min",
+                      style: const TextStyle(color: Colors.black54),
+                    ),
+                    const SizedBox(height: 10),
                     SizedBox(
                       height: 260,
                       child: Row(
-                        children: const [
+                        children: [
                           Expanded(
                             flex: 2,
                             child: Center(
-                              child: _PieChartMock(
-                                slices: [
-                                  _PieSlice(
-                                    label: "Titkok",
-                                    value: 37,
-                                    color: Color(0xFFc331f8),
-                                  ),
-                                  _PieSlice(
-                                    label: "Instagram",
-                                    value: 13.8,
-                                    color: Color(0xFF4942ce),
-                                  ),
-                                  _PieSlice(
-                                    label: "Whatsapp",
-                                    value: 7.4,
-                                    color: Color(0xFF2d8bba),
-                                  ),
-                                  _PieSlice(
-                                    label: "Facebook",
-                                    value: 14.8,
-                                    color: Color(0xFF51a3b8),
-                                  ),
-                                  _PieSlice(
-                                    label: "Youtube",
-                                    value: 25.9,
-                                    color: Color(0xFF66c5c4),
-                                  ),
-                                ],
-                              ),
+                              child: _PieChartMock(slices: _statsSlices),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -236,21 +319,15 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               const SizedBox(height: 10),
 
               Expanded(
-
                 child: appsRestringidas.isEmpty
-
                     ? const Center(child: Text("No hay apps restringidas"))
-
                     : ListView.builder(
-
                         itemCount: appsRestringidas.length,
 
                         itemBuilder: (_, index) {
-
                           final app = appsRestringidas[index];
 
                           return Container(
-
                             margin: const EdgeInsets.only(bottom: 10),
 
                             padding: const EdgeInsets.all(10),
@@ -261,9 +338,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                             ),
 
                             child: Row(
-
                               children: [
-
                                 Image.asset(app.icono, width: 40),
 
                                 const SizedBox(width: 10),
@@ -271,7 +346,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                                 Expanded(child: Text(app.nombre)),
 
                                 app.estaActiva
-
                                     ? const Text(
                                         "Activo",
                                         style: TextStyle(
@@ -279,9 +353,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       )
-
                                     : DropdownButton<int>(
-
                                         value: app.minutos == 0
                                             ? null
                                             : app.minutos,
@@ -289,7 +361,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                                         hint: const Text("Tiempo"),
 
                                         items: const [
-
                                           DropdownMenuItem(
                                             value: 5,
                                             child: Text("5 min"),
@@ -304,46 +375,27 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                                             value: 60,
                                             child: Text("1 hora"),
                                           ),
-
                                         ],
 
                                         onChanged: (value) {
-
-                                          setState(() {
-
-                                            app.minutos = value!;
-                                            app.tiempoInicio = DateTime.now();
-
-                                          });
-
+                                          if (value == null) {
+                                            return;
+                                          }
+                                          _updateRestrictionMinutes(app, value);
                                         },
-
                                       ),
-
                               ],
-
                             ),
-
                           );
-
                         },
-
                       ),
-
               ),
-
             ],
-
           ),
-
         ),
-
       ),
-
     );
-
   }
-
 }
 
 class _PieSlice {
@@ -360,24 +412,30 @@ class _PieSlice {
 }
 
 class _PieChartMock extends StatelessWidget {
-  // Lista de segmentos que se renderizan en el PieChart de fl_chart.
   final List<_PieSlice> slices;
 
   const _PieChartMock({required this.slices});
 
   @override
   Widget build(BuildContext context) {
+    if (slices.isEmpty) {
+      return const Center(
+        child: Text(
+          'Sin datos semanales',
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
+    }
+
     return SizedBox(
       width: 110,
       height: 110,
       child: PieChart(
         PieChartData(
-          // Espacio central para efecto dona.
           centerSpaceRadius: 40,
           sectionsSpace: 1,
           startDegreeOffset: -90,
           borderData: FlBorderData(show: false),
-          // Secciones mock: cada item de slices se transforma en una porcion.
           sections: slices
               .map(
                 (slice) => PieChartSectionData(
@@ -385,9 +443,12 @@ class _PieChartMock extends StatelessWidget {
                   color: slice.color,
                   radius: 50,
                   title: "${slice.label}\n${slice.value.toInt()}%",
-                  // El texto se muestra fuera del aro para mejorar lectura.
-                  titleStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-                  titlePositionPercentageOffset: 1.7
+                  titleStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  titlePositionPercentageOffset: 1.7,
                 ),
               )
               .toList(),

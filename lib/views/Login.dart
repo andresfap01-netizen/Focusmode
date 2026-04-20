@@ -1,7 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:focusmode/view/Permiso.dart';
+import 'package:focusmode/models/requests/UserLoginRequest.dart';
+import 'package:focusmode/services/ApiErrorMapper.dart';
+import 'package:focusmode/services/ApiService.dart';
+import 'package:focusmode/ui/AppToast.dart';
+import 'package:focusmode/ui/AppTextField.dart';
+import 'package:focusmode/views/Permiso.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -14,6 +17,49 @@ class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final ApiService _apiService = ApiService();
+
+  bool _isLoading = false;
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = UserLoginRequest(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      await _apiService.login(request);
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const Permiso()),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      AppToast.showError(context, ApiErrorMapper.toFriendlyMessage(error));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -113,14 +159,19 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    const Text("EMAIL", style: TextStyle(color: Colors.white70)),
+                    const Text(
+                      "EMAIL",
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     const SizedBox(height: 8),
-                    buildTextField(
-                      "Introduce tu Email",
-                      _emailController,
+                    AppTextField(
+                      hint: "Introduce tu Email",
+                      controller: _emailController,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return "El email es requerido";
-                        if (!value.contains('@')) return "Ingresa un email válido";
+                        if (value == null || value.isEmpty)
+                          return "El email es requerido";
+                        if (!value.contains('@'))
+                          return "Ingresa un email válido";
                         return null;
                       },
                     ),
@@ -130,12 +181,13 @@ class _LoginState extends State<Login> {
                       style: TextStyle(color: Colors.white70),
                     ),
                     const SizedBox(height: 8),
-                    buildTextField(
-                      "Introduce tu Contraseña",
-                      _passwordController,
+                    AppTextField(
+                      hint: "Introduce tu Contraseña",
+                      controller: _passwordController,
                       isPassword: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return "La contraseña es requerida";
+                        if (value == null || value.isEmpty)
+                          return "La contraseña es requerida";
                         if (value.length < 6) return "Mínimo 6 caracteres";
                         return null;
                       },
@@ -154,25 +206,25 @@ class _LoginState extends State<Login> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(30),
-                          onTap: () {
-                            if (_formKey.currentState!.validate()) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const Permiso(),
-                                ),
-                              );
-                            }
-                          },
-                          child: const Center(
-                            child: Text(
-                              "Log In",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                          onTap: _isLoading ? null : _login,
+                          child: Center(
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Log In",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
@@ -193,30 +245,6 @@ class _LoginState extends State<Login> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget buildTextField(
-    String hint,
-    TextEditingController controller, {
-    bool isPassword = false,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: isPassword,
-      validator: validator,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white54),
-        filled: true,
-        fillColor: const Color(0xFF39E63),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
       ),
     );
   }

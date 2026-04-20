@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'Login.dart';
-import 'Permiso.dart';
+import 'package:focusmode/models/requests/UserCreateRequest.dart';
+import 'package:focusmode/models/requests/UserLoginRequest.dart';
+import 'package:focusmode/services/ApiErrorMapper.dart';
+import 'package:focusmode/services/ApiService.dart';
+import 'package:focusmode/ui/AppToast.dart';
+import 'package:focusmode/ui/AppTextField.dart';
+import 'package:focusmode/views/Login.dart';
+import 'package:focusmode/views/Permiso.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -14,6 +20,57 @@ class _SignUpState extends State<SignUp> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final ApiService _apiService = ApiService();
+
+  bool _isLoading = false;
+
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = UserCreateRequest(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      await _apiService.signUp(request);
+
+      await _apiService.login(
+        UserLoginRequest(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const Permiso()),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      AppToast.showError(context, ApiErrorMapper.toFriendlyMessage(error));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -81,31 +138,35 @@ class _SignUpState extends State<SignUp> {
                       style: TextStyle(color: Colors.white70),
                     ),
                     const SizedBox(height: 30),
-                    buildTextField(
-                      "Name",
-                      _nameController,
+                    AppTextField(
+                      hint: "Name",
+                      controller: _nameController,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return "El nombre es requerido";
+                        if (value == null || value.isEmpty)
+                          return "El nombre es requerido";
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
-                    buildTextField(
-                      "Email",
-                      _emailController,
+                    AppTextField(
+                      hint: "Email",
+                      controller: _emailController,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return "El email es requerido";
-                        if (!value.contains('@')) return "Ingresa un email válido";
+                        if (value == null || value.isEmpty)
+                          return "El email es requerido";
+                        if (!value.contains('@'))
+                          return "Ingresa un email válido";
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
-                    buildTextField(
-                      "Password",
-                      _passwordController,
+                    AppTextField(
+                      hint: "Password",
+                      controller: _passwordController,
                       isPassword: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return "La contraseña es requerida";
+                        if (value == null || value.isEmpty)
+                          return "La contraseña es requerida";
                         if (value.length < 6) return "Mínimo 6 caracteres";
                         return null;
                       },
@@ -124,25 +185,25 @@ class _SignUpState extends State<SignUp> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(30),
-                          onTap: () {
-                            if (_formKey.currentState!.validate()) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const Permiso(),
-                                ),
-                              );
-                            }
-                          },
-                          child: const Center(
-                            child: Text(
-                              "Sign Up",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                          onTap: _isLoading ? null : _signUp,
+                          child: Center(
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Sign Up",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
@@ -168,30 +229,6 @@ class _SignUpState extends State<SignUp> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget buildTextField(
-    String hint,
-    TextEditingController controller, {
-    bool isPassword = false,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: isPassword,
-      validator: validator,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white54),
-        filled: true,
-        fillColor: const Color(0xFF393E63),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
       ),
     );
   }

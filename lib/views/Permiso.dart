@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:focusmode/view/PantallaPrincipal.dart';
+import 'package:focusmode/views/PantallaPrincipal.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Permiso extends StatelessWidget {
